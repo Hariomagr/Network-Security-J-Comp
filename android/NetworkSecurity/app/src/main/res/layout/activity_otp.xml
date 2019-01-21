@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#FFFFFF"
+    android:layout_weight="1"
+    tools:context=".Otp">
+    <FrameLayout
+        android:background="@color/colorPrimary"
+        android:id="@+id/FrameLayout1"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="0.605"
+        >
+        <ImageView
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            >
+            <android.support.v7.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:background="@android:color/transparent"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:weightSum="1">
+                <LinearLayout
+                    android:layout_weight=".80"
+                    android:weightSum="2"
+                    android:layout_marginLeft="10dp"
+                    android:layout_gravity="bottom"
+                    android:gravity="bottom"
+                    android:layout_marginBottom="15dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="#FFFFFF"
+                        android:textSize="18dp"
+                        android:text="Verify your phone number" />
+                    <TextView
+                        android:id="@+id/confirmation"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="#FFFFFF"
+                        android:textSize="14dp"
+                        android:text="We've sent an OTP to +91 "/>
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </FrameLayout>
+    <LinearLayout
+        android:background="#FFFFFF"
+        android:layout_marginTop="20dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layout_weight="0.325">
+        <TextView
+            android:id="@+id/count"
+            android:textColor="#000000"
+            android:textSize="20dp"
+            android:layout_marginLeft="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Waiting for OTP... 00:59"/>
+
+        <com.mukesh.OtpView
+            android:layout_gravity="center"
+            android:id="@+id/otp_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="72dp"
+            android:inputType="number"
+            android:itemBackground="#ffffff"
+            android:textColor="#000000"
+            app:itemCount="6"
+            android:cursorVisible="true"
+            app:lineColor="#cccccc"
+            app:viewType="rectangle" />
+    </LinearLayout>
+
+</LinearLayout>

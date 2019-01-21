@@ -1,0 +1,32 @@
+Install wampp:
+open phpmyadmin and import network_security.sql
+
+copy the folder /wampp/network_security to www in wampp64 c drive
+
+Install python3.6:
+open command prompt:
+pip install django
+pip install pycryptodome
+
+copy the folder /python django/sms_api to any location
+
+Android:
+Copy the file of android.
+
+Install ngrok to create local server
+
+Run:
+->Start wampp server
+->Open command crompt where ngrok is saved-> ngrok http 80
+
+->Open command crompt where django file-> python manage.py runserver
+->Open command crompt where ngrok is saved-> ngrok http 8000
+->open sms_api/sms_api/settings.py and change ALLOWED_HOSTS to the ngrok server created
+->goto https://myaccount.google.com/lesssecureapps and allow
+->goto sms_api/api/views.py and enter your gmail credentials in server.login("","")
+
+
+->Start android project
+->Goto java/url and change url of wampp and python to new ngrok url
+->Run Android app with your phone connected.
+
