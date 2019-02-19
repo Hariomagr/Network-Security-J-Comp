@@ -2,6 +2,7 @@ package com.example.hario.networksecurity;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.CountDownTimer;
 import android.os.Handler;
@@ -32,10 +33,15 @@ public class Otp extends AppCompatActivity {
     Integer amount=0;
     String id="",pass="";
     String number;
+    ProgressDialog progressDialog;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_otp);
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setCancelable(false);
+        progressDialog.setMessage("Loading...");
+        progressDialog.show();
         id=getIntent().getStringExtra("id");
         number=getIntent().getStringExtra("number");
         pass=getIntent().getStringExtra("password");
@@ -43,7 +49,7 @@ public class Otp extends AppCompatActivity {
         confirmation=(TextView)findViewById(R.id.confirmation);
         count=(TextView)findViewById(R.id.count);
         otpView = findViewById(R.id.otp_view);
-        Retrofit retrofit = new Retrofit.Builder().baseUrl("http://bd57aea4.ngrok.io/api/?number="+number+"&chk=a&amount=12")
+        Retrofit retrofit = new Retrofit.Builder().baseUrl("http://networksecurity.herokuapp.com/api/?number="+number+"&chk=a&amount=12")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
         final RequestInterface request = retrofit.create(RequestInterface.class);
@@ -51,10 +57,24 @@ public class Otp extends AppCompatActivity {
         call.enqueue(new Callback<SMS_API_POJO>() {
             @Override
             public void onResponse(Call<SMS_API_POJO> call, Response<SMS_API_POJO> response) {
+                progressDialog.dismiss();
                 if(response.code()==200){
                     SMS_API_POJO sms_api_pojo = response.body();
                     ss=sms_api_pojo.getOtp();
-                    Log.d("dsdf",ss);
+                    Log.d("dsdffff",ss);
+                    new CountDownTimer(60000, 1000) {
+
+                        public void onTick(long millisUntilFinished) {
+                            count.setText("Waiting for OTP... 00:"+ millisUntilFinished / 1000);
+                        }
+
+                        public void onFinish() {
+                            count.setVisibility(View.GONE);
+                            otpView.setEnabled(false);
+                            otpView.setCursorVisible(false);
+                        }
+
+                    }.start();
                 }
                 else {
                     Toast.makeText(getApplicationContext(),String.valueOf(response.code()),Toast.LENGTH_SHORT).show();
@@ -63,82 +83,106 @@ public class Otp extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<SMS_API_POJO> call, Throwable t) {
-                Toast.makeText(getApplicationContext(),"Error1",Toast.LENGTH_SHORT).show();
+                progressDialog.dismiss();
+                Toast.makeText(getApplicationContext(),t.getLocalizedMessage(),Toast.LENGTH_SHORT).show();
             }
         });
-        new CountDownTimer(60000, 1000) {
 
-            public void onTick(long millisUntilFinished) {
-                count.setText("Waiting for OTP... 00:"+ millisUntilFinished / 1000);
-            }
-
-            public void onFinish() {
-                count.setVisibility(View.GONE);
-                otpView.setEnabled(false);
-                otpView.setCursorVisible(false);
-            }
-
-        }.start();
-        confirmation.setText("We've sent an OTP to +91 "+number.charAt(0)+number.charAt(1)+number.charAt(2));
+        confirmation.setText("We've sent an OTP to "+number);
         otpView.setOtpCompletionListener(new OnOtpCompletionListener() {
             @Override
             public void onOtpCompleted(String s) {
-                if(s.equals(ss)){
-                    Toast.makeText(getApplicationContext(),"Success",Toast.LENGTH_SHORT).show();
-                    ViewDialog alert = new ViewDialog();
-                    alert.showDialog(Otp.this);
-                    Retrofit retrofit = new Retrofit.Builder().baseUrl("http://24b02670.ngrok.io/network_security/")
-                            .addConverterFactory(GsonConverterFactory.create())
-                            .build();
-                    final RequestInterface request = retrofit.create(RequestInterface.class);
-                    Call<SMS_API_POJO> call = request.change(id,pass,amount);
-                    call.enqueue(new Callback<SMS_API_POJO>() {
-                        @Override
-                        public void onResponse(Call<SMS_API_POJO> call, Response<SMS_API_POJO> response) {
-                            if(response.code()==200){
-                                SMS_API_POJO sms_api_pojo = response.body();
-                                Toast.makeText(getApplicationContext(),"Payment Successful",Toast.LENGTH_SHORT).show();
-                            }
-                            else {
-                                Toast.makeText(getApplicationContext(),String.valueOf(response.code()),Toast.LENGTH_SHORT).show();
-                            }
-                        }
+                progressDialog.show();
+                Retrofit retrofit1 = new Retrofit.Builder().baseUrl("http://networksecurity.herokuapp.com/api/validate/?enc_otp="+ss+"&otp="+s)
+                        .addConverterFactory(GsonConverterFactory.create())
+                        .build();
+                final RequestInterface request1 = retrofit1.create(RequestInterface.class);
+                Call<SMS_API_POJO> call1 = request1.getOtp("");
+                call1.enqueue(new Callback<SMS_API_POJO>() {
+                    @Override
+                    public void onResponse(Call<SMS_API_POJO> call, Response<SMS_API_POJO> response) {
+                        progressDialog.dismiss();
+                        if(response.code()==200){
+                            if(response.body().getOtp().equals("true")){
+                                final ProgressDialog progressDialog1 = new ProgressDialog(Otp.this);
+                                progressDialog1.setMessage("Verifying Payment...");
+                                progressDialog1.setCancelable(false);
+                                progressDialog1.show();
+                                Toast.makeText(getApplicationContext(),"Success",Toast.LENGTH_SHORT).show();
+                                ViewDialog alert = new ViewDialog();
+                                alert.showDialog(Otp.this);
+                                Retrofit retrofit = new Retrofit.Builder().baseUrl("http://leaarningapps99.000webhostapp.com/network_security/")
+                                        .addConverterFactory(GsonConverterFactory.create())
+                                        .build();
+                                final RequestInterface request = retrofit.create(RequestInterface.class);
+                                Call<SMS_API_POJO> call1 = request.change(id,pass,amount);
+                                call1.enqueue(new Callback<SMS_API_POJO>() {
+                                    @Override
+                                    public void onResponse(Call<SMS_API_POJO> call, Response<SMS_API_POJO> response) {
+                                        progressDialog1.dismiss();
+                                        if(response.code()==200){
+                                            SMS_API_POJO sms_api_pojo = response.body();
+                                            Toast.makeText(getApplicationContext(),"Payment Successful",Toast.LENGTH_SHORT).show();
+                                            new Handler().postDelayed(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    Retrofit retrofit = new Retrofit.Builder().baseUrl("http://networksecurity.herokuapp.com/api/?number="+number+"&chk=b&amount="+String.valueOf(amount))
+                                                            .addConverterFactory(GsonConverterFactory.create())
+                                                            .build();
+                                                    final RequestInterface request = retrofit.create(RequestInterface.class);
+                                                    Call<SMS_API_POJO> call = request.getOtp("");
+                                                    call.enqueue(new Callback<SMS_API_POJO>() {
+                                                        @Override
+                                                        public void onResponse(Call<SMS_API_POJO> call, Response<SMS_API_POJO> response) {
+                                                            if(response.code()==200){
+                                                                SMS_API_POJO sms_api_pojo = response.body();
+                                                                ss=sms_api_pojo.getOtp();
+                                                                Log.d("dsdf",ss);
+                                                            }
+                                                            else {
+                                                                Toast.makeText(getApplicationContext(),String.valueOf(response.code()),Toast.LENGTH_SHORT).show();
+                                                            }
+                                                        }
 
-                        @Override
-                        public void onFailure(Call<SMS_API_POJO> call, Throwable t) {
-                            Toast.makeText(getApplicationContext(),"Error",Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                    new Handler().postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            Retrofit retrofit = new Retrofit.Builder().baseUrl("http://bd57aea4.ngrok.io/api/?number="+number+"&chk=b&amount="+String.valueOf(amount))
-                                    .addConverterFactory(GsonConverterFactory.create())
-                                    .build();
-                            final RequestInterface request = retrofit.create(RequestInterface.class);
-                            Call<SMS_API_POJO> call = request.getOtp("");
-                            call.enqueue(new Callback<SMS_API_POJO>() {
-                                @Override
-                                public void onResponse(Call<SMS_API_POJO> call, Response<SMS_API_POJO> response) {
-                                    if(response.code()==200){
-                                        SMS_API_POJO sms_api_pojo = response.body();
-                                        ss=sms_api_pojo.getOtp();
-                                        Log.d("dsdf",ss);
-                                    }
-                                    else {
-                                        Toast.makeText(getApplicationContext(),String.valueOf(response.code()),Toast.LENGTH_SHORT).show();
-                                    }
-                                }
+                                                        @Override
+                                                        public void onFailure(Call<SMS_API_POJO> call, Throwable t) {
+                                                            Toast.makeText(getApplicationContext(),"Error",Toast.LENGTH_SHORT).show();
+                                                        }
+                                                    });
+                                                    startActivity(new Intent(Otp.this,MainActivity.class));
+                                                }
+                                            },10000);
 
-                                @Override
-                                public void onFailure(Call<SMS_API_POJO> call, Throwable t) {
-                                    Toast.makeText(getApplicationContext(),"Error",Toast.LENGTH_SHORT).show();
-                                }
-                            });
-                            startActivity(new Intent(Otp.this,MainActivity.class));
+
+
+                                        }
+                                        else {
+                                            Toast.makeText(getApplicationContext(),String.valueOf(response.code()),Toast.LENGTH_SHORT).show();
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onFailure(Call<SMS_API_POJO> call, Throwable t) {
+                                        progressDialog1.dismiss();
+                                        Toast.makeText(getApplicationContext(),t.getLocalizedMessage(),Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                            }
+                            else{
+                                Toast.makeText(getApplicationContext(),"Wrong OTP",Toast.LENGTH_LONG).show();
+                            }
                         }
-                    },10000);
-                }
+                        else{
+                            Toast.makeText(getApplicationContext(),String.valueOf(response.code()),Toast.LENGTH_LONG).show();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<SMS_API_POJO> call, Throwable t) {
+                        progressDialog.dismiss();
+                        Toast.makeText(getApplicationContext(),t.getLocalizedMessage(),Toast.LENGTH_LONG).show();
+                    }
+                });
             }
         });
     }

@@ -2,6 +2,7 @@ package com.example.hario.networksecurity;
 
 import android.accounts.AccountManager;
 import android.app.KeyguardManager;
+import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.hardware.fingerprint.FingerprintManager;
@@ -63,10 +64,14 @@ public class Pay extends AppCompatActivity {
     String chk_mail="";
     Integer amount=0;
     String number="";
+    ProgressDialog progressDialog;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pay);
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setCancelable(false);
+        progressDialog.setMessage("Loading...");
         amount = Integer.parseInt(getIntent().getStringExtra("amount"));
         message=(TextView)findViewById(R.id.message);
         finger=(ImageView)findViewById(R.id.finger);
@@ -76,6 +81,7 @@ public class Pay extends AppCompatActivity {
         login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                progressDialog.show();
                  id = userid.getText().toString();
                  pass = password.getText().toString();
 
@@ -83,7 +89,7 @@ public class Pay extends AppCompatActivity {
                 pass =  bin2hex(getHash(pass));
                 Log.d("sdfsd",id);
                 Log.d("sdffse",pass);
-                Retrofit retrofit = new Retrofit.Builder().baseUrl("http://24b02670.ngrok.io/network_security/")
+                Retrofit retrofit = new Retrofit.Builder().baseUrl("http://leaarningapps99.000webhostapp.com/network_security/")
                         .addConverterFactory(GsonConverterFactory.create())
                         .build();
                 final RequestInterface request = retrofit.create(RequestInterface.class);
@@ -91,6 +97,7 @@ public class Pay extends AppCompatActivity {
                 call.enqueue(new Callback<SMS_API_POJO>() {
                     @Override
                     public void onResponse(Call<SMS_API_POJO> call, Response<SMS_API_POJO> response) {
+                        progressDialog.dismiss();
                         if(response.code()==200){
                             SMS_API_POJO sms_api_pojo = response.body();
                             String[] xxx = sms_api_pojo.getOtp().split(Pattern.quote("%"));
@@ -118,6 +125,7 @@ public class Pay extends AppCompatActivity {
 
                     @Override
                     public void onFailure(Call<SMS_API_POJO> call, Throwable t) {
+                        progressDialog.dismiss();
                         Toast.makeText(getApplicationContext(),"Error",Toast.LENGTH_SHORT).show();
                     }
                 });
